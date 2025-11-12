@@ -1,0 +1,18 @@
+20 % nombre de jobs
+2 5 % nombre de machines
+3 873654221 % seed ( ignorer )
+4 0 % job 0 ( identifiant )
+5 468 % ( ignorer )
+6 54 79 16 66 58 % duree du job 0 sur chaque machine : t01 , t02 , t03 , t04 , t05
+7 1 % job 1
+8 325 % ( ignorer )
+9 83 3 89 58 56 % t11 , t12 , t13 , t14 , t15
+10 2 % job 2
+11 923
+12 15 11 49 31 20 % t21 , t22 , t23 , t24 , t25
+13 3 % job 3
+14 513
+15 71 99 15 68 85 % t31 , t32 , t33 , t34 , t35
+16 4 % job 4
+17 1070
+18 77 56 89 78 53 % t41 , t42 , t43 , t44 , t45

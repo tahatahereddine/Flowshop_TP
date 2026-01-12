@@ -48,15 +48,19 @@ def charger_instance(chemin):
 
     return n, m, temps_traitement, dates_fin
 
-fichier = "./instances/50_20_01.txt"
-n, m, temps, dates_fin = charger_instance(fichier)
+# fichier = "./instances/50_20_01.txt"
+# n, m, temps, dates_fin = charger_instance(fichier)
 
-def print_problem(n, m, temps):
+def print_problem(n, m, temps, dates_fin):
     print(f"Nombre de jobs : {n}")
     print(f"Nombre de machines : {m}")
     print("Matrice des durées :")
     for i, ligne in enumerate(temps):
         print(f"Job {i} : {ligne}")
+    # dates_fin
+    print("Dates de fin :")
+    for i, date in enumerate(dates_fin):
+        print(f"Job {i} : {date}")
 
 
 def generer_solution_aleatoire(n):
@@ -66,25 +70,76 @@ def generer_solution_aleatoire(n):
 
 def cout_CMax(solution, temps):
     
-    n = len(solution)
-    m = len(temps[0])
+    n = len(solution) # number of jobs
+    m = len(temps[0]) # number of machines
 
-    # Initialiser la matrice des dates de fin
-    C = [[0] * m for _ in range(n)]
+    # makespan
+    cout_matrix = [[0]*m for _ in range(n)]
 
     for i in range(n):
-        job = solution[i]
+        job_id = solution[i]
         for j in range(m):
-            if i == 0 and j == 0:
-                C[i][j] = temps[job][j]
-            elif i == 0:
-                C[i][j] = C[i][j-1] + temps[job][j]
-            elif j == 0:
-                C[i][j] = C[i-1][j] + temps[job][j]
+            if i==0 and j==0:
+                cout_matrix[job_id][j]=temps[job_id][j]
+            elif i==0 :
+                cout_matrix[job_id][j]=temps[job_id][j] + temps[job_id][j-1]
             else:
-                C[i][j] = max(C[i-1][j], C[i][j-1]) + temps[job][j]
+                prev_job_id = solution[i-1]
+                max_value = max(cout_matrix[prev_job_id][j], cout_matrix[job_id][j-1])
+                cout_matrix[job_id][j] = temps[job_id][j] + max_value
+    return cout_matrix[solution[-1]][-1]
+def cout_Tardiness(solution, temps, dates_fin):
+    n = len(solution) # number of jobs
 
-    return C[-1][-1]
+    CMax = cout_CMax(solution, temps)
+    tardiness = 0
+    for i in range(n):
+        job_id = solution[i]
+        tardiness += max(0, CMax - dates_fin[job_id])
+    return tardiness
+
+# fonction eval_mo qui calcule le coût d’une solution π passée en paramètre pour chacun des objectifs f (π) = (f1(π), f2(π)) == (Cmax(π), Tsum(π)).
+def eval_mo(solution, temps, dates_fin):
+    cmax = cout_CMax(solution, temps)
+    tardiness = cout_Tardiness(solution, temps, dates_fin)
+    return (cmax, tardiness)
+# Générer une solution aléatoire et l’évaluer. Comparer sa qualité avec la meilleure solution que vous avez identifiée pour le FSP mono-objectif, projetée dans l’espace objectif (f1, f2)
+def generer_et_evaluer_solution(temps, dates_fin):
+    n = len(temps)
+    solution = generer_solution_aleatoire(n)
+    eval = eval_mo(solution, temps, dates_fin)
+    return solution, eval
+
+def filtrage_offline(temps, dates_fin,n_solutions=500):
+    n = len(temps)
+    solutions = []
+    evaluations = []
+
+    for _ in range(n_solutions):
+        sol = generer_solution_aleatoire(n)
+        eval = eval_mo(sol, temps, dates_fin)
+        solutions.append(sol)
+        evaluations.append(eval)
+
+    # Filtrage des solutions non dominées
+    non_dominated_solutions = []
+    non_dominated_evaluations = []
+
+    for i in range(len(solutions)):
+        dominated = False
+        for j in range(len(solutions)):
+            if i != j:
+                if (evaluations[j][0] <= evaluations[i][0] and evaluations[j][1] < evaluations[i][1]) or \
+                   (evaluations[j][0] < evaluations[i][0] and evaluations[j][1] <= evaluations[i][1]):
+                    dominated = True
+                    break
+        if not dominated:
+            non_dominated_solutions.append(solutions[i])
+            non_dominated_evaluations.append(evaluations[i])
+    return non_dominated_solutions, non_dominated_evaluations
+
+# question 5 tp2: 
+
 
 
 # Question 4
@@ -218,14 +273,14 @@ def custom_solution(temps, iterations=100):
                
     return  solution, cost
 
-sol1, cost1 = marche_aleatoire(temps, 1_000)
-print(f'Marche Aleatoire: coût = {cost1}')
+# sol1, cost1 = marche_aleatoire(temps, 1_000)
+# print(f'Marche Aleatoire: coût = {cost1}')
 
-sol2, cost2 = climber_first(temps)
-print(f'Climber first: coût = {cost2}')
+# sol2, cost2 = climber_first(temps)
+# print(f'Climber first: coût = {cost2}')
 
-sol3, cost3 = climber_best(temps)
-print(f'Climber best: coût = {cost3}')
+# sol3, cost3 = climber_best(temps)
+# print(f'Climber best: coût = {cost3}')
 
-sol4, cost4 = custom_solution(temps)
-print(f'Propre solution: coût = {cost4}')
+# sol4, cost4 = custom_solution(temps)
+# print(f'Propre solution: coût = {cost4}')

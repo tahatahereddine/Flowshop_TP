@@ -60,36 +60,34 @@ def cout_CMax(solution, temps):
                 prev_job_id = solution[i-1]
                 max_value = max(cout_matrix[prev_job_id][j], cout_matrix[job_id][j-1])
                 cout_matrix[job_id][j] = temps[job_id][j] + max_value
-    return cout_matrix[solution[-1]][-1]
+    makespan = cout_matrix[solution[-1]][-1]
+    return makespan, cout_matrix
 
 def cout_Tardiness(solution, temps, dates_fin):
     n = len(solution) # number of jobs
 
-    CMax = cout_CMax(solution, temps)
+    _, cout_matrix = cout_CMax(solution, temps)
     tardiness = 0
     for i in range(n):
         job_id = solution[i]
-        tardiness += max(0, CMax - dates_fin[job_id])
+        tardiness += max(0,  cout_matrix[job_id][-1] - dates_fin[job_id])
     return tardiness
 
 def eval_mo(solution, temps, dates_fin):
-    cmax = cout_CMax(solution, temps)
+    makespan, _ = cout_CMax(solution, temps)
     tardiness = cout_Tardiness(solution, temps, dates_fin)
-    return (cmax, tardiness)
+    return (makespan, tardiness)
 
 import matplotlib.pyplot as plt
-def projection(s1, s2, temps, dates_fin):
-    cout_s1 = cout_CMax(s1, temps)
-    cout_s2 = cout_CMax(s2, temps)
-    tar_s1 = cout_Tardiness(s1, temps, dates_fin)
-    tar_s2 = cout_Tardiness(s2, temps, dates_fin)
-
-    plt.scatter(cout_s1, tar_s1, label="solution aléatoire")
-    plt.scatter(cout_s2, tar_s2, label="solution mono-objective")
+def projection(s1, s2):
+    plt.scatter(s1[0], s1[1], label="solution aléatoire")
+    plt.scatter(s2[0], s2[1], label="solution mono-objective")
 
     plt.xlabel("coût")
     plt.ylabel("tardiness")   # typo fixed
-    plt.legend(loc="upper left")
+    # legend outside  the plot
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
+          fancybox=True, shadow=True, ncol=5)
     plt.show()
 
 
@@ -140,10 +138,50 @@ def generer_solutions(n, m, times, due_dates, n_solutions=500):
 
 
 def projection_solutions(solutions):
-    for i, s in enumerate(solutions):
-        plt.scatter(s[0], s[1], label=f"solution {i}")
-
+    x_values = [sol[0] for sol in solutions]
+    y_values = [sol[1] for sol in solutions]
+    plt.scatter(x_values, y_values)
+    plt.title(f"Projection {len(solutions)} solutions")
     plt.xlabel("coût")
     plt.ylabel("tardiness")
-    plt.legend(loc="upper left")
     plt.show()
+
+def plot_dom_nondom(doms, nondoms):
+    x_values = [sol[0] for sol in doms]
+    y_values = [sol[1] for sol in doms]
+    plt.scatter(x_values, y_values)
+    nondoms.sort(key=lambda x: x[0])
+    x_nd = [f[0] for f in nondoms]
+    y_nd = [f[1] for f in nondoms]
+
+    plt.scatter(x_nd, y_nd, color="orange", label="solutions non dominées")
+
+    if len(nondoms) > 1:
+        plt.plot(x_nd, y_nd, color="orange")
+
+    plt.title(f"Projection {len(doms)} solutions")
+    plt.xlabel("coût")
+    plt.ylabel("tardiness")
+    plt.show()
+
+def filtrage_online(archiveA, nouv_sol):
+
+    if nouv_sol in archiveA: return archiveA
+
+    for s in archiveA:
+        if domine(s, nouv_sol):
+            return archiveA
+        
+    for s in archiveA:
+        if domine(nouv_sol, s):
+            archiveA.remove(s)
+
+    archiveA.append(nouv_sol)
+    return archiveA
+
+def create_archive(solutions):
+    archiveA = []
+    for s in solutions:
+        archiveA = filtrage_online(archiveA, s)
+    return archiveA
+

@@ -62,6 +62,9 @@ print(climber_best_sol, cost)
 
 
 # Question 8
+print("------------Question 8------------")
+archive = algo_pareto(n, m, temps, dates_fin)
 
-
-
+print(archive)
+for t in archive:
+    print(fct_agg_mono_objective(t))

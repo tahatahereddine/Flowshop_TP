@@ -227,3 +227,67 @@ def climber_best_mono(solution, temps, dates_fin):
             improved = True
                        
     return  solution, cost
+
+
+# Question 8
+def algo_pareto(n, m, temps, dates, max_evals=1000):
+    print("--- Running Pareto Local Search (PLS) ---")
+    
+    # 1. Initialization
+    s0 = generer_solution_aleatoire(n)
+    
+    # The Archive stores dictionaries to track if a solution has been visited
+    # Structure: {'perm': [0,1..], 'objs': (100, 50), 'visited': False}
+    start_node = {'perm': s0, 'objs': eval_mo(s0, temps, dates), 'visited': False}
+    archive = [start_node]
+    
+    eval_count = 1
+    
+    while eval_count < max_evals:
+        # 2. Selection: Pick a non-visited solution from the archive
+        candidates = [s for s in archive if not s['visited']]
+        
+        if not candidates:
+            print("   All solutions explored.")
+            break
+            
+        # Strategy: Random selection
+        current = random.choice(candidates)
+        current['visited'] = True
+        
+        # 3. Exploration (Stochastic Neighborhood)
+        # Testing ALL swaps is too slow (N*N), so we test k random swaps
+        n_neighbors = 20 
+        
+        for _ in range(n_neighbors):
+            if eval_count >= max_evals: break
+            
+            # Create neighbor
+            perm = list(current['perm'])
+            i, j = random.sample(range(n), 2)
+            perm[i], perm[j] = perm[j], perm[i]
+            
+            # Evaluate
+            f1, f2 = eval_mo(perm, temps, dates)
+            eval_count += 1
+            neighbor_objs = (f1, f2)
+            
+            # 4. Online Filtering (Using logic from your filtrage_online)
+            # Check if neighbor is dominated by anyone in archive
+            is_dominated = False
+            for s in archive:
+                if domine(s['objs'], neighbor_objs):
+                    is_dominated = True
+                    break
+            
+            if not is_dominated:
+                # If valid, remove solutions in archive dominated by neighbor
+                # (Re-building list is safer than modifying while iterating)
+                archive = [s for s in archive if not domine(neighbor_objs, s['objs'])]
+                
+                # Add neighbor
+                new_node = {'perm': perm, 'objs': neighbor_objs, 'visited': False}
+                archive.append(new_node)
+                
+    # Return just the objective pairs for plotting
+    return [s['objs'] for s in archive]

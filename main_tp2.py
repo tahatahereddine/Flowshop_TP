@@ -1,5 +1,6 @@
 from Flowshop_multi_obj import *
 from Flowshop_mono_obj import climber_best
+from math import inf
 
 n, m, temps, dates_fin = charger_instance("instances/50_20_01.txt")
 s = [2, 1, 0]
@@ -34,22 +35,30 @@ print(cout_CMax(s, temps))
 
 # Question 5
 print("------------Question 5------------")
-solutions_aleatoires = generer_solutions(n=n, m=m, times=temps, due_dates=dates_fin, n_solutions=50)
+solutions_aleatoires = generer_solutions(n=n, m=m, times=temps, due_dates=dates_fin, n_solutions=2500)
 solutions_non_dominees = filtrage_offline(solutions_aleatoires)
 # projection_solutions(solutions=solutions_aleatoires)
 plot_dom_nondom(solutions_aleatoires, solutions_non_dominees)
 print(solutions_non_dominees)
+m = inf
 for t in solutions_non_dominees:
-    print(fct_agg_mono_objective(t))
+    y = fct_agg_mono_objective(t)
+    if y < m: m = y
+    print(y)
+print("smallest score: ", m )
+
 
 # Question 6
 print("------------Question 6------------")
 archive = create_archive(solutions_aleatoires)
-# print(fct_agg_mono_objective(min(archive)))
 plot_dom_nondom(solutions_aleatoires, archive)
 print(archive)
+m = inf
 for t in archive:
-    print(fct_agg_mono_objective(t))
+    y = fct_agg_mono_objective(t)
+    if y < m: m = y
+    print(y)
+print("smallest score: ", m )
 
 ## C Partie 2
 # Question 7
@@ -64,7 +73,11 @@ print(climber_best_sol, cost)
 # Question 8
 print("------------Question 8------------")
 archive = algo_pareto(n, m, temps, dates_fin)
-
+plot_dom_nondom(solutions_aleatoires, archive)
 print(archive)
+m = inf
 for t in archive:
-    print(fct_agg_mono_objective(t))
+    y = fct_agg_mono_objective(t)
+    if y < m: m = y
+    print(y)
+print("smallest score: ", m)

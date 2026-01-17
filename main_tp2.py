@@ -29,19 +29,37 @@ print(eval_mo(solution_alea, temps, fins))
 print(eval_mo(solution_mono_obj[0], temps, fins))
 
 
+# Question 4
 projection(solution_alea, solution_mono_obj[0])
 
 
-# question 5
+# Question 5
 solutions_aleatoires = generer_solutions(n=n, m=m, times=temps, due_dates=fins, n_solutions=50)
 solutions_non_dominees = filtrage_offline(solutions_aleatoires)
 print(solutions_aleatoires)
 projection_solutions(solutions=solutions_aleatoires)
 plot_dom_nondom(solutions_aleatoires, solutions_non_dominees)
 
-# question 6
+# Question 6
 archive = create_archive(solutions_aleatoires)
 print(archive)
 plot_dom_nondom(solutions_aleatoires, archive)
 
-# question 7
+
+## C Partie 2
+# Question 7
+
+def fct_mono_objective(alpha, beta, solution, cmax, tmax):
+    """
+    solution : (cout, tardiness)
+    g(solution) = alpha * cout + beta * tardiness
+    """
+    cout, tardiness = solution
+    
+    return alpha * (cout/cmax) + beta * (tardiness/tmax)
+
+
+
+
+
+

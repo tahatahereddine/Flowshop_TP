@@ -42,8 +42,8 @@ def charger_instance(chemin):
 
     return n, m, temps_traitement
 
-fichier = "./instances/50_20_01.txt"
-n, m, temps = charger_instance(fichier)
+# fichier = "./instances/50_20_01.txt"
+# n, m, temps = charger_instance(fichier)
 
 def print_problem(n, m, temps):
     print(f"Nombre de jobs : {n}")
@@ -212,14 +212,14 @@ def custom_solution(temps, iterations=100):
                
     return  solution, cost
 
-sol1, cost1 = marche_aleatoire(temps, 1_000)
-print(f'Marche Aleatoire: coût = {cost1}')
+# sol1, cost1 = marche_aleatoire(temps, 1_000)
+# print(f'Marche Aleatoire: coût = {cost1}')
 
-sol2, cost2 = climber_first(temps)
-print(f'Climber first: coût = {cost2}')
+# sol2, cost2 = climber_first(temps)
+# print(f'Climber first: coût = {cost2}')
 
-sol3, cost3 = climber_best(temps)
-print(f'Climber best: coût = {cost3}')
+# sol3, cost3 = climber_best(temps)
+# print(f'Climber best: coût = {cost3}')
 
-sol4, cost4 = custom_solution(temps)
-print(f'Propre solution: coût = {cost4}')
+# sol4, cost4 = custom_solution(temps)
+# print(f'Propre solution: coût = {cost4}')

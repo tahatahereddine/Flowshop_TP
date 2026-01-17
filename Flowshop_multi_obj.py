@@ -53,14 +53,15 @@ def cout_CMax(solution, temps):
         job_id = solution[i]
         for j in range(m):
             if i==0 and j==0:
-                cout_matrix[job_id][j]=temps[job_id][j]
+                cout_matrix[i][j]=temps[job_id][j]
             elif i==0 :
-                cout_matrix[job_id][j]=temps[job_id][j] + temps[job_id][j-1]
+                cout_matrix[i][j]=cout_matrix[i][j-1] + temps[job_id][j]
+            elif j == 0:
+                cout_matrix[i][j] = cout_matrix[i-1][j] + temps[job_id][j]
             else:
-                prev_job_id = solution[i-1]
-                max_value = max(cout_matrix[prev_job_id][j], cout_matrix[job_id][j-1])
-                cout_matrix[job_id][j] = temps[job_id][j] + max_value
-    makespan = cout_matrix[solution[-1]][-1]
+                max_value = max(cout_matrix[i-1][j], cout_matrix[i][j-1])
+                cout_matrix[i][j] = temps[job_id][j] + max_value
+    makespan = cout_matrix[-1][-1]
     return makespan, cout_matrix
 
 def cout_Tardiness(solution, temps, dates_fin):
@@ -70,7 +71,7 @@ def cout_Tardiness(solution, temps, dates_fin):
     tardiness = 0
     for i in range(n):
         job_id = solution[i]
-        tardiness += max(0,  cout_matrix[job_id][-1] - dates_fin[job_id])
+        tardiness += max(0,  cout_matrix[i][-1] - dates_fin[job_id])
     return tardiness
 
 def eval_mo(solution, temps, dates_fin):
@@ -102,6 +103,10 @@ def domine(sol_a, sol_b):
 
 def filtrage_offline(solutions):
     
+    """
+    solutions = [(),  (), ....., () ]
+    """
+    
     non_dominees = []
     
     for sol in solutions:
@@ -120,8 +125,6 @@ def filtrage_offline(solutions):
 
 #  Génère n_solutions aléatoires et filtre les dominées
 def generer_solutions(n, m, times, due_dates, n_solutions=500):
-
-    print(f" Génération de {n_solutions} solutions aléatoires...")
     
     solutions = []
     for i in range(n_solutions):
@@ -172,7 +175,7 @@ def filtrage_online(archiveA, nouv_sol):
         if domine(s, nouv_sol):
             return archiveA
         
-    for s in archiveA:
+    for s in archiveA[:]:
         if domine(nouv_sol, s):
             archiveA.remove(s)
 
@@ -185,3 +188,42 @@ def create_archive(solutions):
         archiveA = filtrage_online(archiveA, s)
     return archiveA
 
+def fct_agg_mono_objective(solution, poids=(0.5, 0.5)):
+    """
+    solution : (cout, tardiness)
+    g(solution) = alpha * cout + beta * tardiness
+    """
+    cout, tardiness = solution
+    alpha, beta = poids
+    return alpha * cout + beta * tardiness
+
+
+from Flowshop_mono_obj import echange
+def climber_best_mono(solution, temps, dates_fin):
+    """
+    solution initial sous forme de [0, 1, 2] ordre des jobs
+    n = nbr de jobs
+    """
+    n = len(solution)
+    s = eval_mo(solution, temps, dates_fin)
+    cost = fct_agg_mono_objective(s)
+    improved = True
+    while improved:
+        improved = False
+        # Generer les voisins
+        voinsins = []
+        costs = []
+        for i in range(1,n):
+            for j in range(i+1, n+1):
+                voisin = echange(solution, i, j)
+                voinsins.append(voisin)
+                s = eval_mo(voisin, temps, dates_fin)
+                costs.append(fct_agg_mono_objective(s))
+        minimum = min(costs)
+        if minimum < cost:
+            voisin_best_index = costs.index(minimum)
+            solution = voinsins[voisin_best_index]
+            cost = minimum
+            improved = True
+                       
+    return  solution, cost

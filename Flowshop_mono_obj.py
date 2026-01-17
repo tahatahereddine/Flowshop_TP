@@ -211,6 +211,7 @@ def custom_solution(temps, iterations=100):
             cost = minimum            
                
     return  solution, cost
+# n, m, temps = charger_instance("instances/50_20_01.txt")
 
 # sol1, cost1 = marche_aleatoire(temps, 1_000)
 # print(f'Marche Aleatoire: coût = {cost1}')
@@ -219,7 +220,7 @@ def custom_solution(temps, iterations=100):
 # print(f'Climber first: coût = {cost2}')
 
 # sol3, cost3 = climber_best(temps)
-# print(f'Climber best: coût = {cost3}')
+# print(f'solution : {sol3},  Climber best: coût = {cost3}')
 
 # sol4, cost4 = custom_solution(temps)
 # print(f'Propre solution: coût = {cost4}')

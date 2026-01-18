@@ -88,15 +88,13 @@ def echange(solution, p1, p2):
         print("Error: position out of bound!")
         return None
     
-    tmp = solution[p1 - 1]
-    solution[p1 - 1] = solution[p2 - 1]
-    solution[p2 - 1] = tmp
-    return solution
+    new_solution = solution.copy()  # Copier pour ne pas modifier l'original
+    new_solution[p1 - 1], new_solution[p2 - 1] = new_solution[p2 - 1], new_solution[p1 - 1]
+    return new_solution
 
 # [8, 7, 6, 5, 4, 3, 2, 1] --> [8, 3, 6, 5, 4, 7, 2, 1]
 # exemple1 = [8, 7, 6, 5, 4, 3, 2, 1]
-# print(echange(exemple1, 1, 6))
-
+# print(echange(exemple1, p1=1, p2=6))
 
 # Question 5
 def insere(solution, p_job, p_insert):
@@ -104,10 +102,10 @@ def insere(solution, p_job, p_insert):
     if p_insert > n or p_job > n:
         print("Error: position out of bound!")
         return None
-    
-    job = solution.pop(p_job - 1)
-    solution.insert(p_insert - 1, job)
-    return solution
+    new_solution = solution.copy()
+    job = new_solution.pop(p_job - 1)
+    new_solution.insert(p_insert - 1, job)
+    return new_solution
 
 # [1, 6, 8, 2, 4, 5, 3, 7]   -->  [1, 8, 2, 4, 5, 6, 3, 7]
 # exemple2 = [1, 6, 8, 2, 4, 5, 3, 7]
@@ -115,13 +113,19 @@ def insere(solution, p_job, p_insert):
 
 
 # Question 6
-def marche_aleatoire(temps, n = 1_000):
+def marche_aleatoire(temps, n = 1_000,voisinage="echange"):
     n_jobs = len(temps)
     solution = generer_solution_aleatoire(n_jobs)
     cost = cout_CMax(solution, temps)
     for i in range(n):
         p1, p2 = random.sample(range(n_jobs), 2)
-        new_solution = echange(solution, p1, p2)
+        if voisinage == "echange":
+            new_solution = echange(solution, p1, p2)
+        elif voisinage == "insere":
+            new_solution = insere(solution, p1, p2)
+        else:
+            raise ValueError("Voisinage inconnu, choisir 'echange' ou 'insere'")
+
         new_cost = cout_CMax(new_solution, temps)
 
         if new_cost < cost:
@@ -134,16 +138,23 @@ def marche_aleatoire(temps, n = 1_000):
 
 
 # Question 7
-def climber_first(temps):
+def climber_first(temps,voisinage="echange"):
     n = len(temps)
     solution = generer_solution_aleatoire(n)
     cost = cout_CMax(solution, temps)
     improved = True
     while improved:
         improved = False
-        for i in range(1,n):
-            for j in range(i+1, n+1):
-                voisin = echange(solution, i, j)
+        for i in range(n):
+            for j in range(n):
+                if i == j:
+                    continue
+                if voisinage == "echange":
+                    voisin = echange(solution, i, j)
+                elif voisinage == "insere":
+                    voisin = insere(solution, i, j)
+                else:
+                    raise ValueError("Voisinage inconnu, choisir 'echange' ou 'insere'")
                 new_cost = cout_CMax(voisin, temps)
                 if(new_cost < cost):
                     solution = voisin
@@ -161,7 +172,7 @@ def climber_first(temps):
 # print(f'Climber first: coût = {cost}')
 
 
-def climber_best(temps):
+def climber_best(temps,voisinage="echange"):
     n = len(temps)
     solution = generer_solution_aleatoire(n)
     cost = cout_CMax(solution, temps)
@@ -171,9 +182,16 @@ def climber_best(temps):
         # Generer les voisins
         voinsins = []
         costs = []
-        for i in range(1,n):
-            for j in range(i+1, n+1):
-                voisin = echange(solution, i, j)
+        for i in range(n):
+            for j in range(n):
+                if i == j:
+                    continue
+                if voisinage == "echange":
+                    voisin = echange(solution, i, j)
+                elif voisinage == "insere":
+                    voisin = insere(solution, i, j)
+                else:
+                    raise ValueError("Voisinage inconnu, choisir 'echange' ou 'insere'")
                 voinsins.append(voisin)
                 costs.append(cout_CMax(voisin, temps))
         minimum = min(costs)
@@ -211,7 +229,82 @@ def custom_solution(temps, iterations=100):
             cost = minimum            
                
     return  solution, cost
-# n, m, temps = charger_instance("instances/50_20_01.txt")
+
+import itertools
+
+def multi_start_local_search_with_noise(times: list[list[int]], 
+                                        n_starts: int = 20, 
+                                        max_iter: int = 10000,
+                                        neighborhood: str = "aleatoire",
+                                        noise_level: int = 5) -> tuple[list[int], int]:
+    n = len(times)
+    m = len(times[0])
+
+    best_global_solution = generer_solution_aleatoire(n)
+    best_global_cost = cout_CMax(best_global_solution, times)
+
+    for start in range(n_starts):
+        # --- Création du point de départ ---
+        if start == 0:
+            current_solution = generer_solution_aleatoire(n)
+        else:
+            # Ajout d'un petit "bruit" à la meilleure solution globale
+            current_solution = best_global_solution.copy()
+
+            for _ in range(noise_level):
+
+                if neighborhood == "aleatoire":
+                    op = random.choice(["echange", "insere"])
+                else:
+                    op = neighborhood
+
+                i, j = random.sample(range(n), 2)
+
+                if op == "echange":
+                    current_solution = echange(current_solution, i, j)
+                elif op == "insere":
+                    current_solution = insere(current_solution, i, j)
+                else:
+                    raise ValueError(f"Voisinage inconnu : {op}")
+
+        current_cost = cout_CMax(current_solution, times)
+
+        # --- Recherche locale ---
+        improved = True
+        iteration = 0
+        while improved and iteration < max_iter:
+            improved = False
+            iteration += 1
+
+            neighbors = list(itertools.combinations(range(n), 2))
+            random.shuffle(neighbors)
+
+            best_neighbor = None
+            best_neighbor_cost = current_cost
+
+            for (i, j) in neighbors:
+                new_solution = echange(current_solution, i, j)
+                new_cost = cout_CMax(new_solution, times)
+                if new_cost < best_neighbor_cost:
+                    best_neighbor_cost = new_cost
+                    best_neighbor = new_solution
+
+            if best_neighbor_cost < current_cost:
+                current_solution = best_neighbor
+                current_cost = best_neighbor_cost
+                improved = True
+
+        # --- Mise à jour de la meilleure solution globale ---
+        if current_cost < best_global_cost:
+            best_global_solution = current_solution.copy()
+            best_global_cost = current_cost
+
+   
+    return best_global_solution, best_global_cost
+
+
+
+# n, m, temps = charger_instance("Flowshop_TP\\instances\\50_20_01.txt")
 
 # sol1, cost1 = marche_aleatoire(temps, 1_000)
 # print(f'Marche Aleatoire: coût = {cost1}')
@@ -222,5 +315,47 @@ def custom_solution(temps, iterations=100):
 # sol3, cost3 = climber_best(temps)
 # print(f'solution : {sol3},  Climber best: coût = {cost3}')
 
-# sol4, cost4 = custom_solution(temps)
-# print(f'Propre solution: coût = {cost4}')
+# # sol4, cost4 = custom_solution(temps)
+# # print(f'Propre solution: coût = {cost4}')
+# best_sol, best_cmax = multi_start_local_search_with_noise(temps, n_starts=20, noise_level=5,neighborhood="aleatoire", max_iter=10000)
+# print(f'Multi-start Local Search with Noise: coût = {best_cmax}')
+
+
+import os
+import time
+
+
+# --- Programme de test ---
+def test_algos(instance_folder, k=5, n_solutions=1000):
+    files = [f for f in os.listdir(instance_folder) if f.endswith(".txt")]
+
+    for fichier in files:
+        print(f"\n=== Instance : {fichier} ===")
+        chemin = os.path.join(instance_folder, fichier)
+        n, m, temps = charger_instance(chemin)
+
+        for algo_name in ["marche_aleatoire", "climber_first", "climber_best", "multi_start"]:
+            for voisinage in ["echange", "insere"]:
+                couts = []
+                for run in range(k):
+
+                    if algo_name == "marche_aleatoire":
+                        sol, cost = marche_aleatoire(temps, n=n_solutions, voisinage=voisinage)
+                    elif algo_name == "climber_first":
+                        sol, cost = climber_first(temps, voisinage=voisinage)
+                    elif algo_name == "climber_best":
+                        sol, cost = climber_best(temps, voisinage=voisinage)
+                    elif algo_name == "multi_start":
+                        sol, cost = multi_start_local_search_with_noise(
+                            temps, n_starts=5, max_iter=n_solutions, neighborhood=voisinage
+                        )
+                    else:
+                        raise ValueError("Algo inconnu")
+
+                    couts.append(cost)
+
+                print(f"{algo_name} ({voisinage}) -> coût moyen : {sum(couts)/k:.2f}")
+
+
+# Tester tous les fichiers avec 5 exécutions et 1000 solutions max
+test_algos("Flowshop_TP\\instances", k=5, n_solutions=1000)

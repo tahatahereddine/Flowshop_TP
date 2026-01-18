@@ -199,14 +199,14 @@ def fct_agg_mono_objective(solution, poids=(0.5, 0.5)):
 
 
 from Flowshop_mono_obj import echange
-def climber_best_mono(solution, temps, dates_fin):
+def climber_best_mono(solution, temps, dates_fin, poids=(0.5, 0.5)):
     """
     solution initial sous forme de [0, 1, 2] ordre des jobs
     n = nbr de jobs
     """
     n = len(solution)
     s = eval_mo(solution, temps, dates_fin)
-    cost = fct_agg_mono_objective(s)
+    cost = fct_agg_mono_objective(s, poids)
     improved = True
     while improved:
         improved = False
@@ -218,7 +218,7 @@ def climber_best_mono(solution, temps, dates_fin):
                 voisin = echange(solution, i, j)
                 voinsins.append(voisin)
                 s = eval_mo(voisin, temps, dates_fin)
-                costs.append(fct_agg_mono_objective(s))
+                costs.append(fct_agg_mono_objective(s, poids))
         minimum = min(costs)
         if minimum < cost:
             voisin_best_index = costs.index(minimum)
@@ -229,8 +229,35 @@ def climber_best_mono(solution, temps, dates_fin):
     return  solution, cost
 
 
+def algo_scalaire(n, m, temps, dates, steps=10):
+    print("--- Running Scalarized Local Search ---")
+    sols_all = []
+    archive = []
+    
+    for step in range(steps + 1):
+        alpha = step / steps
+        beta = 1 - alpha
+        poids = (alpha, beta)
+        
+        # Générer une solution initiale aléatoire
+        s0 = generer_solution_aleatoire(n)
+        
+        # Appliquer le climber mono-objective
+        s_opt, score = climber_best_mono(s0, temps, dates, poids)
+        
+        # Évaluer la solution optimisée
+        f1, f2 = eval_mo(s_opt, temps, dates)
+        sols_all.append((s_opt, (f1, f2)))
+        
+        # Mettre à jour l'archive avec filtrage en ligne
+        archive = filtrage_online(archive, (f1, f2))
+        
+        print(f" Step {step}/{steps}: alpha={alpha:.2f}, beta={beta:.2f}, Eval=({f1}, {f2}), Score={score:.2f}")
+    
+    print(f"--- Scalarized Local Search Completed: {len(archive)} non-dominated solutions found ---")
+    return sols_all, archive
 # Question 8
-def algo_pareto(n, m, temps, dates, max_evals=1000):
+def algo_pareto(n, m, temps, dates, max_evals=1000000):
     print("--- Running Pareto Local Search (PLS) ---")
     
     # 1. Initialization

@@ -6,6 +6,8 @@ n, m, temps, dates_fin = charger_instance("instances/7_5_01.txt")
 s = [2, 1, 0]
 print(cout_CMax(s, temps))
 
+
+
 # question 1
 print("------------Question 1------------")
 solutions_alea =[generer_solution_aleatoire(n) for _ in range(5)]
@@ -20,7 +22,7 @@ projection_solutions(evals)
 # question 3
 print("------------Question 3------------")
 solution_alea = generer_solution_aleatoire(n)
-
+solution_mono_obj = climber_best(temps)
 print("solution alea: ", solution_alea)
 print("solution mono obj", solution_mono_obj)
 print(eval_mo(solution_alea, temps, dates_fin))
@@ -29,10 +31,9 @@ print(eval_mo(solution_mono_obj[0], temps, dates_fin))
 
 # Question 4
 print("------------Question 4------------")
-
 projection(solution_alea, solution_mono_obj[0])
 
-"""
+
 # Question 5
 print("------------Question 5------------")
 solutions_aleatoires = generer_solutions(n=n, m=m, times=temps, due_dates=dates_fin, n_solutions=2500)
@@ -74,11 +75,9 @@ print(climber_best_sol, cost)
 print("------------Question 8------------")
 archive = algo_pareto(n, m, temps, dates_fin)
 plot_dom_nondom(solutions_aleatoires, archive)
-print(archive)
 m = inf
 for t in archive:
     y = fct_agg_mono_objective(t)
     if y < m: m = y
     print(y)
 print("smallest score: ", m)
-"""

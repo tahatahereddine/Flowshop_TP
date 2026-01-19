@@ -11,14 +11,15 @@ def charger_instance(chemin):
 
     lignes = [l.strip() for l in lignes if l.strip()]
 
-    n = int(lignes[0].split()[0])   # nombre de jobs
+    # le split() est pour prendre en compte le cas de commentaires
+    n = int(lignes[0].split()[0])   # nombre de jobs, 
     m = int(lignes[1].split()[0])   # nombre de machines
 
     temps_traitement = []
     dates_fin = []
 
 
-    i = 3  # on saute les 3 premières lignes (seed ignorée)
+    i = 3  # on saute les 3 premières lignes
     while i < len(lignes):
 
         try:
@@ -43,8 +44,8 @@ def charger_instance(chemin):
 
 def cout_CMax(solution, temps):
     
-    n = len(solution) # number of jobs
-    m = len(temps[0]) # number of machines
+    n = len(solution) # nonbre de jobs
+    m = len(temps[0]) # nombre des machines
 
     # makespan
     cout_matrix = [[0]*m for _ in range(n)]
@@ -65,7 +66,7 @@ def cout_CMax(solution, temps):
     return makespan, cout_matrix
 
 def cout_Tardiness(solution, temps, dates_fin):
-    n = len(solution) # number of jobs
+    n = len(solution) # nombre de jobs
 
     _, cout_matrix = cout_CMax(solution, temps)
     tardiness = 0

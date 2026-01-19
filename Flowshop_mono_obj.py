@@ -358,4 +358,4 @@ def test_algos(instance_folder, k=5, n_solutions=1000):
 
 
 # Tester tous les fichiers avec 5 exécutions et 1000 solutions max
-test_algos("Flowshop_TP\\instances", k=5, n_solutions=1000)
+test_algos("instances", k=5, n_solutions=1000)

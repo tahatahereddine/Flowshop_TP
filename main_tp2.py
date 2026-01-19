@@ -2,37 +2,37 @@ from Flowshop_multi_obj import *
 from Flowshop_mono_obj import climber_best
 from math import inf
 
-n, m, temps, dates_fin = charger_instance("instances/50_20_01.txt")
+n, m, temps, dates_fin = charger_instance("instances/7_5_01.txt")
 s = [2, 1, 0]
 print(cout_CMax(s, temps))
 
 # question 1
-# print("------------Question 1------------")
-# solutions_alea =[generer_solution_aleatoire(n) for _ in range(5)]
-# print(solution_alea)
+print("------------Question 1------------")
+solutions_alea =[generer_solution_aleatoire(n) for _ in range(5)]
+print(solutions_alea)
 
 # question2
-# print("------------Question 2------------")
-# evals = [eval_mo(sol, temps, dates_fin) for sol in solutions_alea]
-# print(evals)
-# projection_solutions(evals)
+print("------------Question 2------------")
+evals = [eval_mo(sol, temps, dates_fin) for sol in solutions_alea]
+print(evals)
+projection_solutions(evals)
 
 # question 3
-# print("------------Question 3------------")
-# solution_alea = generer_solution_aleatoire(n)
+print("------------Question 3------------")
+solution_alea = generer_solution_aleatoire(n)
 
-# print("solution alea: ", solution_alea)
-# print("solution mono obj", solution_mono_obj)
-# print(eval_mo(solution_alea, temps, dates_fin))
-# print(eval_mo(solution_mono_obj[0], temps, dates_fin))
+print("solution alea: ", solution_alea)
+print("solution mono obj", solution_mono_obj)
+print(eval_mo(solution_alea, temps, dates_fin))
+print(eval_mo(solution_mono_obj[0], temps, dates_fin))
 
 
 # Question 4
-# print("------------Question 4------------")
+print("------------Question 4------------")
 
-# projection(solution_alea, solution_mono_obj[0])
+projection(solution_alea, solution_mono_obj[0])
 
-
+"""
 # Question 5
 print("------------Question 5------------")
 solutions_aleatoires = generer_solutions(n=n, m=m, times=temps, due_dates=dates_fin, n_solutions=2500)
@@ -81,3 +81,4 @@ for t in archive:
     if y < m: m = y
     print(y)
 print("smallest score: ", m)
+"""
